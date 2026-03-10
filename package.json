@@ -1,0 +1,5 @@
+{
+  "name": "questforge",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"]
+}
