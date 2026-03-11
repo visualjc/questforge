@@ -10,7 +10,7 @@ const SERVER_ENTRY = path.resolve(
 
 export async function createMcpClient(): Promise<Client> {
   const transport = new StdioClientTransport({
-    command: "bun",
+    command: process.env.QUESTFORGE_BUN_BIN || process.execPath || "bun",
     args: ["run", SERVER_ENTRY],
     stderr: "ignore",
   });
