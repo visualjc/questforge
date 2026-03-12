@@ -11,7 +11,7 @@ const program = new Command()
 registerCampaignsCommand(program);
 registerStubCommands(program);
 
-program.parse();
+await program.parseAsync();
 
 // Show help if no command was given
 if (program.args.length === 0 && !process.argv.slice(2).length) {
