@@ -69,6 +69,7 @@ export async function storeChunks(
 
   // Delete existing chunks so re-ingest replaces rather than duplicates
   await qdrant.delete(collectionName, {
+    wait: true,
     filter: {
       must: [{ key: "type", match: { value: "chunk" } }],
     },

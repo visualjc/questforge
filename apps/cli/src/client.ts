@@ -13,6 +13,9 @@ export async function createMcpClient(): Promise<Client> {
     command: process.env.QUESTFORGE_BUN_BIN || process.execPath || "bun",
     args: ["run", SERVER_ENTRY],
     stderr: "ignore",
+    env: Object.fromEntries(
+      Object.entries(process.env).filter((e): e is [string, string] => e[1] != null),
+    ),
   });
 
   const client = new Client({ name: "questforge-cli", version: "0.0.1" });
