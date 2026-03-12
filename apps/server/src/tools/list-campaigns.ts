@@ -18,6 +18,7 @@ export function registerListCampaignsTool(server: FastMCP) {
         return JSON.stringify({
           campaigns: [],
           message: `Failed to connect to Qdrant: ${message}`,
+          error: true,
         });
       }
 
@@ -32,6 +33,7 @@ export function registerListCampaignsTool(server: FastMCP) {
         return JSON.stringify({
           campaigns: [],
           message: `Qdrant is not reachable at ${url}. Is it running? (${message})`,
+          error: true,
         });
       }
 

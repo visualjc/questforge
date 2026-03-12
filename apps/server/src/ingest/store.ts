@@ -67,6 +67,13 @@ export async function storeChunks(
 
   await ensureCollection(collectionName);
 
+  // Delete existing chunks so re-ingest replaces rather than duplicates
+  await qdrant.delete(collectionName, {
+    filter: {
+      must: [{ key: "type", match: { value: "chunk" } }],
+    },
+  });
+
   const points = chunks.map((text, i) => ({
     id: crypto.randomUUID(),
     vector: embeddings[i],

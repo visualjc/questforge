@@ -32,7 +32,13 @@ export function registerCampaignsCommand(program: Command): void {
         const data = (await callTool(client, "list_campaigns")) as {
           campaigns: CampaignEntry[];
           message: string;
+          error?: boolean;
         };
+
+        if (data.error) {
+          console.error(data.message);
+          process.exit(1);
+        }
 
         if (data.campaigns.length === 0) {
           console.log(data.message);
