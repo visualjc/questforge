@@ -23,9 +23,6 @@ Thumbs.db
 .env.local
 .env.*.local
 
-# Qdrant
-qdrant_storage/
-
 # Logs
 *.log
 npm-debug.log*
