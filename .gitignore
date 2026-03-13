@@ -22,6 +22,9 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Generated test fixtures
+test-data/sample-campaign.pdf
+
 # Logs
 *.log
 npm-debug.log*

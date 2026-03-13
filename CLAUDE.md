@@ -44,3 +44,7 @@ Currently forwarded vars:
 | `SHELL` | System context |
 | `TERM` | Terminal context |
 | `NODE_ENV` | Runtime mode |
+
+## Test Fixtures
+
+`test-data/sample-campaign.pdf` is a generated fixture — do not commit it. Run `bun run fixture:pdf` to create it before manual e2e verification. The generator script `scripts/generate-test-pdf.ts` is the source of truth for fixture content.

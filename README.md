@@ -66,10 +66,15 @@ packages/
 # Type-check
 bunx tsc --noEmit
 
-# Generate test PDF fixture
-bun run scripts/generate-test-pdf.ts
+# Generate test PDF fixture (not version-controlled — must be generated locally)
+bun run fixture:pdf
 
 # Run end-to-end (requires Qdrant + .env)
-bun run apps/cli/src/index.ts ingest test-data/sample-campaign.pdf
+bun run apps/cli/src/index.ts ingest test-data/sample-campaign.pdf --name "The Sunken Temple"
 bun run apps/cli/src/index.ts campaigns list
+
+# Or run the full demo in one command
+bun run demo:e2e
 ```
+
+> **Note:** `test-data/sample-campaign.pdf` is a generated fixture, not a checked-in artifact. Run `bun run fixture:pdf` to create it before running the e2e flow. Byte-for-byte output may vary between generations.
