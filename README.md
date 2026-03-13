@@ -44,7 +44,7 @@ bun run apps/cli/src/index.ts campaigns list
 ```
 CLI (Commander.js)
   └─ spawns → MCP Server (FastMCP, child process via StdioClientTransport)
-                ├─ PDF ingestion pipeline (pdf-parse → chunking → OpenAI embeddings)
+                ├─ PDF ingestion pipeline (unpdf → chunking → OpenAI embeddings)
                 └─ Qdrant vector store (campaigns, semantic search)
 ```
 
