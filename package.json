@@ -2,6 +2,10 @@
   "name": "questforge",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "fixture:pdf": "bun run scripts/generate-test-pdf.ts",
+    "demo:e2e": "bun run fixture:pdf && bun run apps/cli/src/index.ts ingest test-data/sample-campaign.pdf --name \"The Sunken Temple\" && bun run apps/cli/src/index.ts campaigns list"
+  },
   "devDependencies": {
     "pdf-lib": "^1.17.1"
   }
