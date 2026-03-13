@@ -1,5 +1,8 @@
 {
   "name": "questforge",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"]
+  "workspaces": ["apps/*", "packages/*"],
+  "devDependencies": {
+    "pdf-lib": "^1.17.1"
+  }
 }

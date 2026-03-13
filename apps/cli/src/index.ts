@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import { registerCampaignsCommand } from "./commands/campaigns.js";
+import { registerIngestCommand } from "./commands/ingest.js";
 import { registerStubCommands } from "./commands/stubs.js";
 
 const program = new Command()
@@ -9,6 +10,7 @@ const program = new Command()
   .version("0.0.1");
 
 registerCampaignsCommand(program);
+registerIngestCommand(program);
 registerStubCommands(program);
 
 await program.parseAsync();

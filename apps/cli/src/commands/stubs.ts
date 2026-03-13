@@ -9,12 +9,6 @@ interface StubDef {
 
 const stubs: StubDef[] = [
   {
-    name: "ingest",
-    args: "<file>",
-    description: "Ingest a campaign PDF",
-    stage: 2,
-  },
-  {
     name: "forge",
     args: "<campaign_id>",
     description:
