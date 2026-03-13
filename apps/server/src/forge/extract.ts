@@ -78,7 +78,7 @@ const MergedTransitionSchema = z.object({
   fromScene: z.string().describe("Title of the source scene"),
   toScene: z.string().describe("Title of the destination scene"),
   description: z.string(),
-  condition: z.string().optional().describe("Optional condition for using this transition"),
+  condition: z.string().nullable().optional().describe("Optional condition for using this transition"),
   sourceChunkIndices: z.array(z.number()),
 });
 
@@ -287,7 +287,7 @@ function toSceneGraph(
         fromSceneId: fromId,
         toSceneId: toId,
         description: t.description,
-        ...(t.condition !== undefined && { condition: t.condition }),
+        ...(t.condition != null && { condition: t.condition }),
         sourceChunkIndices: t.sourceChunkIndices,
       };
     })
