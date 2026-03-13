@@ -19,25 +19,22 @@ const GRAPH_POINT_ID = 1;
 
 /**
  * Store a scene graph as a single payload document in Qdrant.
- * Replaces any existing graph for the campaign (delete → recreate → upsert).
+ * Ensures the collection exists, then upserts the graph point atomically.
  */
 export async function storeGraph(graph: SceneGraph): Promise<void> {
   const qdrant = getClient();
   const name = collectionName(graph.campaignId);
 
-  // Delete existing collection if present
+  // Ensure collection exists (create if missing, ignore "already exists")
   try {
-    await qdrant.deleteCollection(name);
+    await qdrant.createCollection(name, {
+      vectors: { size: 1, distance: "Cosine" },
+    });
   } catch {
-    // Collection may not exist — that's fine
+    // Collection already exists — that's fine
   }
 
-  // Create collection with dummy vector config (we only store payload)
-  await qdrant.createCollection(name, {
-    vectors: { size: 1, distance: "Cosine" },
-  });
-
-  // Upsert the graph as a single point
+  // Upsert the graph as a single point (replaces payload atomically)
   await qdrant.upsert(name, {
     wait: true,
     points: [
