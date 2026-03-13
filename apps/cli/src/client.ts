@@ -8,14 +8,33 @@ const SERVER_ENTRY = path.resolve(
   "../../server/src/index.ts",
 );
 
+const FORWARDED_ENV_VARS = [
+  "OPENAI_API_KEY",
+  "QDRANT_URL",
+  "QUESTFORGE_BUN_BIN",
+  "PATH",
+  "HOME",
+  "USER",
+  "SHELL",
+  "TERM",
+  "NODE_ENV",
+] as const;
+
+function buildForwardedEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const key of FORWARDED_ENV_VARS) {
+    const val = process.env[key];
+    if (val != null) env[key] = val;
+  }
+  return env;
+}
+
 export async function createMcpClient(): Promise<Client> {
   const transport = new StdioClientTransport({
     command: process.env.QUESTFORGE_BUN_BIN || process.execPath || "bun",
     args: ["run", SERVER_ENTRY],
     stderr: "ignore",
-    env: Object.fromEntries(
-      Object.entries(process.env).filter((e): e is [string, string] => e[1] != null),
-    ),
+    env: buildForwardedEnv(),
   });
 
   const client = new Client({ name: "questforge-cli", version: "0.0.1" });

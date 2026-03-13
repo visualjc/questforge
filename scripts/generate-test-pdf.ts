@@ -1,8 +1,9 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const OUTPUT = new URL("../test-data/sample-campaign.pdf", import.meta.url).pathname;
+const OUTPUT = fileURLToPath(new URL("../test-data/sample-campaign.pdf", import.meta.url));
 
 async function main() {
   const pdf = await PDFDocument.create();
