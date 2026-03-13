@@ -1,2 +1,10 @@
 // @questforge/shared barrel export
-export type { Campaign, CampaignChunk } from "./types.js";
+export type {
+  Campaign,
+  CampaignChunk,
+  Scene,
+  Transition,
+  NPC,
+  Item,
+  SceneGraph,
+} from "./types.js";
