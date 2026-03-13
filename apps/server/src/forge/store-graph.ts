@@ -71,9 +71,13 @@ export async function loadGraph(
     }
 
     return points[0].payload as unknown as SceneGraph;
-  } catch {
-    // Collection doesn't exist
-    return null;
+  } catch (err) {
+    // Only treat "collection not found" as null — let connection errors propagate
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("Not found") || message.includes("doesn't exist")) {
+      return null;
+    }
+    throw err;
   }
 }
 
