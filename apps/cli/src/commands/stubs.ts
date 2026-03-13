@@ -9,22 +9,16 @@ interface StubDef {
 
 const stubs: StubDef[] = [
   {
-    name: "play",
-    args: "<campaign_id>",
-    description: "Play through a campaign interactively",
-    stage: 4,
-  },
-  {
     name: "inventory",
     args: "<campaign_id>",
     description: "View current inventory and flags for a campaign",
-    stage: 4,
+    stage: 5,
   },
   {
     name: "history",
     args: "<campaign_id>",
     description: "View session history for a campaign",
-    stage: 4,
+    stage: 5,
   },
 ];
 
@@ -50,7 +44,7 @@ export function registerStubCommands(program: Command): void {
     .description("List all play sessions")
     .action(() => {
       console.log(
-        "⚔ sessions list is not yet implemented — coming in Stage 4.",
+        "⚔ sessions list is not yet implemented — coming in Stage 5.",
       );
     });
 }
