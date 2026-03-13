@@ -9,13 +9,6 @@ interface StubDef {
 
 const stubs: StubDef[] = [
   {
-    name: "forge",
-    args: "<campaign_id>",
-    description:
-      "⚔ Generate a complete scene graph from a campaign (the core QuestForge pipeline)",
-    stage: 3,
-  },
-  {
     name: "play",
     args: "<campaign_id>",
     description: "Play through a campaign interactively",
@@ -32,12 +25,6 @@ const stubs: StubDef[] = [
     args: "<campaign_id>",
     description: "View session history for a campaign",
     stage: 4,
-  },
-  {
-    name: "graph",
-    args: "<campaign_id>",
-    description: "Inspect the scene graph for a campaign",
-    stage: 3,
   },
 ];
 

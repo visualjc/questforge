@@ -2,6 +2,8 @@
 import { Command } from "commander";
 import { registerCampaignsCommand } from "./commands/campaigns.js";
 import { registerIngestCommand } from "./commands/ingest.js";
+import { registerForgeCommand } from "./commands/forge.js";
+import { registerGraphCommand } from "./commands/graph.js";
 import { registerStubCommands } from "./commands/stubs.js";
 
 const program = new Command()
@@ -11,6 +13,8 @@ const program = new Command()
 
 registerCampaignsCommand(program);
 registerIngestCommand(program);
+registerForgeCommand(program);
+registerGraphCommand(program);
 registerStubCommands(program);
 
 await program.parseAsync();
