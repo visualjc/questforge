@@ -7,4 +7,5 @@ export type {
   NPC,
   Item,
   SceneGraph,
+  PlaySession,
 } from "./types.js";

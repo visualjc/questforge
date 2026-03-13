@@ -75,3 +75,19 @@ export interface SceneGraph {
   npcs: NPC[];
   items: Item[];
 }
+
+// ---------------------------------------------------------------------------
+// Play Session types
+// ---------------------------------------------------------------------------
+
+/** An interactive play session tracking player progress through a campaign. */
+export interface PlaySession {
+  sessionId: string;
+  campaignId: string;
+  currentSceneId: string;
+  visitedSceneIds: string[];
+  inventory: string[];
+  flags: Record<string, boolean>;
+  createdAt: string;
+  updatedAt: string;
+}
