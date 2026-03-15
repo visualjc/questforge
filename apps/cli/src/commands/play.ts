@@ -6,7 +6,10 @@ function prompt(
   rl: readline.Interface,
   query: string,
 ): Promise<string> {
-  return new Promise((resolve) => rl.question(query, resolve));
+  return new Promise((resolve, reject) => {
+    rl.question(query, resolve);
+    rl.once("close", () => reject(new Error("EOF")));
+  });
 }
 
 interface SceneInfo {
@@ -125,7 +128,24 @@ export function registerPlayCommand(program: Command): void {
 
         try {
           while (true) {
-            const input = await prompt(rl, "> ");
+            let input: string;
+            try {
+              input = await prompt(rl, "> ");
+            } catch {
+              // EOF — stdin closed (piped input exhausted)
+              const saveResult = (await callTool(client, "save_session", {
+                sessionId,
+              })) as { success?: boolean; error?: string };
+              if (saveResult.error) {
+                console.error(`\nError saving session: ${saveResult.error}`);
+              } else {
+                console.log("\nSession ended. Your progress has been saved.");
+                console.log(
+                  `\nResume with: questforge play ${actualCampaignId} --resume ${sessionId}`,
+                );
+              }
+              break;
+            }
             const trimmed = input.trim();
 
             if (!trimmed) continue;
