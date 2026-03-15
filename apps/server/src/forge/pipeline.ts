@@ -67,8 +67,16 @@ export async function forgeCampaign(
   // Step 4: Enrich, repair, and validate for playability
   const enrichedGraph = await enrichGraph(graph, chunks);
 
-  // Step 5: Store in Qdrant
+  // Step 5: Store in Qdrant (even if not play-ready, so user can inspect with 'graph')
   await storeGraph(enrichedGraph);
+
+  // Step 6: Fail if graph is not play-ready
+  if (enrichedGraph.playReady !== true) {
+    throw new Error(
+      "Forge completed but the graph is not play-ready. Some scenes have no exits after enrichment. " +
+      "Inspect with 'graph " + campaignId + "' and check campaign content."
+    );
+  }
 
   return enrichedGraph;
 }

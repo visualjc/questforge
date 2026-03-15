@@ -28,7 +28,7 @@ export function registerStartSessionTool(server: FastMCP) {
           });
         }
 
-        if (graph.playReady === false) {
+        if (graph.playReady !== true) {
           return JSON.stringify({
             error: "This campaign's scene graph is not play-ready. Try re-forging the campaign with: questforge forge " + args.campaignId,
           });
