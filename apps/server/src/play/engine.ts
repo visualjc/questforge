@@ -36,6 +36,11 @@ const PlayerIntentSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("unknown") }),
 ]);
 
+// Wrap in a root object — OpenAI structured outputs requires root schema to be type: "object"
+const PlayerIntentResponseSchema = z.object({
+  intent: PlayerIntentSchema,
+});
+
 type PlayerIntent = z.infer<typeof PlayerIntentSchema>;
 
 // ---------------------------------------------------------------------------
@@ -149,7 +154,7 @@ async function classifyIntent(
         content: `Classify the following player message into one of the intent types. Player says: "${playerMessage}"`,
       },
     ],
-    response_format: zodResponseFormat(PlayerIntentSchema, "player_intent"),
+    response_format: zodResponseFormat(PlayerIntentResponseSchema, "player_intent"),
   });
 
   const message = completion.choices[0]?.message;
@@ -157,7 +162,7 @@ async function classifyIntent(
     return { type: "unknown" };
   }
 
-  return message.parsed;
+  return message.parsed.intent;
 }
 
 // ---------------------------------------------------------------------------

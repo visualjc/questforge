@@ -38,9 +38,9 @@ export async function saveSession(session: PlaySession): Promise<void> {
       vectors: { size: 1, distance: "Cosine" },
     });
   } catch (err) {
-    // Only ignore "already exists" — let connection/auth errors propagate
+    // Only ignore "already exists" / "Conflict" — let connection/auth errors propagate
     const message = err instanceof Error ? err.message : String(err);
-    if (!message.includes("already exists")) {
+    if (!message.includes("already exists") && !message.includes("Conflict")) {
       throw err;
     }
   }
