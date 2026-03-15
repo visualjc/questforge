@@ -16,6 +16,7 @@ interface SceneInfo {
     title: string;
     description: string;
     sceneType: string;
+    isTerminal?: boolean;
     exits: Array<{ sceneId: string; name: string; description: string }>;
   };
   error?: string;
@@ -37,18 +38,28 @@ function displayScene(info: SceneInfo): void {
   console.log(`\n=== ${info.scene.title} ===`);
   console.log(`[${info.scene.sceneType}]`);
   console.log(info.scene.description);
-  if (info.scene.exits.length > 0) {
-    console.log("\nExits:");
-    for (const exit of info.scene.exits) {
-      console.log(`  → ${exit.name} (${exit.description})`);
-    }
+
+  if (info.scene.isTerminal && info.scene.exits.length === 0) {
+    console.log("");
+    console.log(`🎉 Congratulations! You have completed the campaign!`);
+    console.log("Your adventure ends here. Type /quit to save your final progress.");
+  } else if (info.scene.exits.length > 0) {
+    console.log("\nWhat do you do?");
+    info.scene.exits.forEach((exit, i) => {
+      console.log(`  ${i + 1}. ${exit.description} → ${exit.name}`);
+    });
+    console.log("\nType a number to choose, or type anything else to interact.");
+  } else {
+    console.log("\n⚠ This scene has no available exits. This may indicate a graph quality issue.");
+    console.log("Type anything to interact, or /quit to save and exit.");
   }
 }
 
 function displayHelp(): void {
   console.log("\nCommands:");
-  console.log("  /help       — Show this help message");
+  console.log("  1, 2, 3...  — Choose a numbered option");
   console.log("  /look       — Look around the current scene");
+  console.log("  /help       — Show this help message");
   console.log("  /quit       — Save session and exit");
   console.log("  /exit       — Save session and exit");
   console.log("");

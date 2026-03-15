@@ -199,16 +199,6 @@ function renderScene(scene: Scene, graph: SceneGraph): string {
   lines.push(`[${scene.sceneType}]`);
   lines.push(scene.description);
 
-  if (transitions.length > 0) {
-    lines.push("");
-    lines.push("Exits:");
-    for (const t of transitions) {
-      const target = graph.scenes.find((s) => s.id === t.toSceneId);
-      const name = target?.title ?? t.toSceneId;
-      lines.push(`  → ${name} (${t.description})`);
-    }
-  }
-
   const notices: string[] = [];
   for (const npc of npcs) {
     notices.push(`  - ${npc.name} (${npc.role})`);
@@ -220,6 +210,26 @@ function renderScene(scene: Scene, graph: SceneGraph): string {
     lines.push("");
     lines.push("You notice:");
     lines.push(...notices);
+  }
+
+  if (scene.isTerminal && transitions.length === 0) {
+    lines.push("");
+    lines.push(`🎉 Congratulations! You have completed "${graph.campaignName}"!`);
+    lines.push("Your adventure ends here. Type /quit to save your final progress.");
+  } else if (transitions.length > 0) {
+    lines.push("");
+    lines.push("What do you do?");
+    transitions.forEach((t, i) => {
+      const target = graph.scenes.find((s) => s.id === t.toSceneId);
+      const name = target?.title ?? t.toSceneId;
+      lines.push(`  ${i + 1}. ${t.description} → ${name}`);
+    });
+    lines.push("");
+    lines.push("Type a number to choose, or type anything else to interact.");
+  } else {
+    lines.push("");
+    lines.push("⚠ This scene has no available exits. This may indicate a graph quality issue.");
+    lines.push("Type anything to interact, or /quit to save and exit.");
   }
 
   return lines.join("\n");
@@ -328,6 +338,41 @@ export async function processTurn(
   const npcs = getSceneNPCs(currentScene, graph);
   const items = getSceneItems(currentScene, graph);
 
+  // Check for numeric choice (deterministic, no LLM call)
+  const trimmed = playerMessage.trim();
+  const choiceNumber = parseInt(trimmed, 10);
+  if (!isNaN(choiceNumber) && String(choiceNumber) === trimmed && choiceNumber >= 1 && choiceNumber <= transitions.length) {
+    const transition = transitions[choiceNumber - 1];
+    const newScene = graph.scenes.find((s) => s.id === transition.toSceneId);
+    if (!newScene) {
+      return {
+        response: "The path leads nowhere you can reach right now.",
+        updatedSession: session,
+        shouldEnd: false,
+      };
+    }
+    const updatedSession: PlaySession = {
+      ...session,
+      currentSceneId: newScene.id,
+      visitedSceneIds: session.visitedSceneIds.includes(newScene.id)
+        ? session.visitedSceneIds
+        : [...session.visitedSceneIds, newScene.id],
+      updatedAt: new Date().toISOString(),
+    };
+    if (newScene.isTerminal && getSceneTransitions(newScene, graph).length === 0) {
+      return {
+        response: `You head toward ${newScene.title}...\n\n${renderScene(newScene, graph)}`,
+        updatedSession,
+        shouldEnd: true,
+      };
+    }
+    return {
+      response: `You head toward ${newScene.title}...\n\n${renderScene(newScene, graph)}`,
+      updatedSession,
+      shouldEnd: false,
+    };
+  }
+
   const intent = await classifyIntent(
     playerMessage,
     currentScene,
@@ -363,6 +408,13 @@ export async function processTurn(
           : [...session.visitedSceneIds, newScene.id],
         updatedAt: new Date().toISOString(),
       };
+      if (newScene.isTerminal && getSceneTransitions(newScene, graph).length === 0) {
+        return {
+          response: `You head toward ${newScene.title}...\n\n${renderScene(newScene, graph)}`,
+          updatedSession,
+          shouldEnd: true,
+        };
+      }
       return {
         response: `You head toward ${newScene.title}...\n\n${renderScene(newScene, graph)}`,
         updatedSession,

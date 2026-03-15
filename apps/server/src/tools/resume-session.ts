@@ -27,12 +27,18 @@ export function registerResumeSessionTool(server: FastMCP) {
           });
         }
 
+        if (graph.playReady === false) {
+          return JSON.stringify({
+            error: "This campaign's scene graph is not play-ready. Try re-forging the campaign with: questforge forge " + session.campaignId,
+          });
+        }
+
         const currentScene = graph.scenes.find(
           (s) => s.id === session.currentSceneId,
         );
         if (!currentScene) {
           return JSON.stringify({
-            error: `Current scene "${session.currentSceneId}" not found in graph.`,
+            error: `Your session references scene "${session.currentSceneId}" which no longer exists in the current graph. The campaign may have been re-forged. Start a new session instead.`,
           });
         }
 
@@ -55,6 +61,7 @@ export function registerResumeSessionTool(server: FastMCP) {
             title: currentScene.title,
             description: currentScene.description,
             sceneType: currentScene.sceneType,
+            isTerminal: currentScene.isTerminal ?? false,
             exits,
           },
         });

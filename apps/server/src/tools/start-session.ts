@@ -28,6 +28,12 @@ export function registerStartSessionTool(server: FastMCP) {
           });
         }
 
+        if (graph.playReady === false) {
+          return JSON.stringify({
+            error: "This campaign's scene graph is not play-ready. Try re-forging the campaign with: questforge forge " + args.campaignId,
+          });
+        }
+
         const startScene = findStartingScene(graph);
         const sessionId = generateSessionId(args.campaignId);
 
@@ -62,6 +68,7 @@ export function registerStartSessionTool(server: FastMCP) {
             title: startScene.title,
             description: startScene.description,
             sceneType: startScene.sceneType,
+            isTerminal: startScene.isTerminal ?? false,
             exits,
           },
         });

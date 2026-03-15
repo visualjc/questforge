@@ -32,6 +32,10 @@ export function registerPlayTurnTool(server: FastMCP) {
         const result = await processTurn(args.message, session, graph);
         await saveSession(result.updatedSession);
 
+        const currentScene = graph.scenes.find(
+          (s) => s.id === result.updatedSession.currentSceneId,
+        );
+
         return JSON.stringify({
           response: result.response,
           shouldEnd: result.shouldEnd,
@@ -40,6 +44,7 @@ export function registerPlayTurnTool(server: FastMCP) {
             currentSceneId: result.updatedSession.currentSceneId,
             visitedCount: result.updatedSession.visitedSceneIds.length,
             inventoryCount: result.updatedSession.inventory.length,
+            isTerminal: currentScene?.isTerminal ?? false,
           },
         });
       } catch (err) {
