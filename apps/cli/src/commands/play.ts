@@ -7,8 +7,12 @@ function prompt(
   query: string,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    rl.question(query, resolve);
-    rl.once("close", () => reject(new Error("EOF")));
+    const onClose = () => reject(new Error("EOF"));
+    rl.once("close", onClose);
+    rl.question(query, (answer) => {
+      rl.removeListener("close", onClose);
+      resolve(answer);
+    });
   });
 }
 
