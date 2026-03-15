@@ -11,6 +11,7 @@ function prompt(
 
 interface SceneInfo {
   sessionId: string;
+  campaignId?: string;
   scene: {
     title: string;
     description: string;
@@ -69,6 +70,7 @@ export function registerPlayCommand(program: Command): void {
         console.log(`\n⚔ ${info.name} v${info.version}\n`);
 
         let sessionId: string;
+        let actualCampaignId = campaignId;
 
         if (opts.resume) {
           const result = (await callTool(
@@ -83,6 +85,7 @@ export function registerPlayCommand(program: Command): void {
           }
 
           sessionId = result.sessionId;
+          actualCampaignId = result.campaignId ?? campaignId;
           console.log(`Resuming session ${sessionId}...`);
           displayScene(result);
         } else {
@@ -122,17 +125,19 @@ export function registerPlayCommand(program: Command): void {
             }
 
             if (trimmed === "/quit" || trimmed === "/exit") {
-              const result = (await callTool(client, "play_turn", {
+              const saveResult = (await callTool(client, "save_session", {
                 sessionId,
-                message: "quit",
-              })) as TurnResult;
+              })) as { success?: boolean; error?: string };
 
-              if (result.response) {
-                console.log(`\n${result.response}`);
+              if (saveResult.error) {
+                console.error(`\nError saving session: ${saveResult.error}`);
+                console.error("Your progress may not have been saved.");
+                break;
               }
 
+              console.log("\nFarewell, adventurer! Your progress has been saved.");
               console.log(
-                `\nSession saved: ${sessionId}. Resume with: questforge play ${campaignId} --resume ${sessionId}`,
+                `\nSession saved: ${sessionId}. Resume with: questforge play ${actualCampaignId} --resume ${sessionId}`,
               );
               break;
             }
@@ -153,7 +158,7 @@ export function registerPlayCommand(program: Command): void {
 
             if (result.shouldEnd) {
               console.log(
-                `\nSession saved: ${sessionId}. Resume with: questforge play ${campaignId} --resume ${sessionId}`,
+                `\nSession saved: ${sessionId}. Resume with: questforge play ${actualCampaignId} --resume ${sessionId}`,
               );
               break;
             }

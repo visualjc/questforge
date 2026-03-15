@@ -37,8 +37,12 @@ export async function saveSession(session: PlaySession): Promise<void> {
     await qdrant.createCollection(name, {
       vectors: { size: 1, distance: "Cosine" },
     });
-  } catch {
-    // Collection already exists — that's fine
+  } catch (err) {
+    // Only ignore "already exists" — let connection/auth errors propagate
+    const message = err instanceof Error ? err.message : String(err);
+    if (!message.includes("already exists")) {
+      throw err;
+    }
   }
 
   // Upsert the session as a single point (replaces payload atomically)

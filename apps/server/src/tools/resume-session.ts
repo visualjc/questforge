@@ -50,6 +50,7 @@ export function registerResumeSessionTool(server: FastMCP) {
 
         return JSON.stringify({
           sessionId: session.sessionId,
+          campaignId: session.campaignId,
           scene: {
             title: currentScene.title,
             description: currentScene.description,
