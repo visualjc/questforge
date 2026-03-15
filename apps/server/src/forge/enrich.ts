@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { SceneGraph, Transition } from "@questforge/shared";
 import { slugify } from "./extract.js";
+import { findStartingScene } from "../play/engine.js";
 
 // ---------------------------------------------------------------------------
 // OpenAI client (same pattern as extract.ts)
@@ -364,8 +365,8 @@ function validatePlayability(graph: SceneGraph): SceneGraph {
   }
 
   // Check 2: starting scene has at least 2 outgoing transitions
-  const startScene = graph.scenes[0];
-  if (startScene) {
+  try {
+    const startScene = findStartingScene(graph);
     const startOutgoing = getOutgoingTransitions(
       graph,
       startScene.id,
@@ -375,6 +376,8 @@ function validatePlayability(graph: SceneGraph): SceneGraph {
         `Starting scene "${startScene.title}" has only ${startOutgoing} outgoing transition(s), needs at least 2`,
       );
     }
+  } catch {
+    // findStartingScene throws on empty graphs — already handled by enrichGraph's empty check
   }
 
   // Check 3: warn if no terminal scenes identified
