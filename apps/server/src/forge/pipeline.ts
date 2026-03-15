@@ -2,6 +2,7 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 import type { SceneGraph } from "@questforge/shared";
 import { fetchAllChunks } from "./retrieve.js";
 import { extractFromChunks } from "./extract.js";
+import { enrichGraph } from "./enrich.js";
 import { storeGraph } from "./store-graph.js";
 
 let client: QdrantClient | null = null;
@@ -63,8 +64,11 @@ export async function forgeCampaign(
   // Step 3: Extract scene graph
   const graph = await extractFromChunks(chunks, { campaignId, campaignName });
 
-  // Step 4: Store in Qdrant
-  await storeGraph(graph);
+  // Step 4: Enrich, repair, and validate for playability
+  const enrichedGraph = await enrichGraph(graph, chunks);
 
-  return graph;
+  // Step 5: Store in Qdrant
+  await storeGraph(enrichedGraph);
+
+  return enrichedGraph;
 }

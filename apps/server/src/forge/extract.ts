@@ -235,7 +235,7 @@ async function mergeExtractions(
 // Convert merged LLM output → SceneGraph with stable IDs
 // ---------------------------------------------------------------------------
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 }
 
