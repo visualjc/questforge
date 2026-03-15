@@ -148,6 +148,7 @@ Rules:
 - Add bidirectional connections where logical (e.g. if you can go from Village to Causeway, you should be able to go back).
 - Ensure ALL scenes are reachable from the starting scene — every non-terminal scene must have at least one incoming transition from a reachable scene.
 - Identify terminal/climax scenes (boss encounters, final rooms) that should intentionally have zero exits — list them in terminalSceneIds.
+- Terminal/climax scenes MUST have at least one INCOMING transition from a nearby reachable scene so the player can actually reach the campaign's ending. If a boss encounter or final scene exists, ensure there is a path TO it (e.g. Throne Room → Boss Encounter).
 - Scene titles in your response must match the titles in the input EXACTLY.
 - Make transitions feel natural and grounded in the scene descriptions.`;
 
@@ -246,16 +247,20 @@ function buildRepairPrompt(
     const scene = graph.scenes.find((s) => s.id === deId);
     if (!scene) continue;
     const idx = graph.scenes.indexOf(scene);
-    const isUnreachable = unreachableIds.includes(deId);
+    const isUnreachable = unreachableIds.includes(deId) || (scene.isTerminal && reachableSet != null && !reachableSet.has(deId));
     const isDeadEnd = deadEndIds.includes(deId);
     const isStartScene = deId === startSceneId;
+    const isTerminal = scene.isTerminal === true;
     const tags: string[] = [];
-    if (isDeadEnd) tags.push("dead-end");
+    if (isTerminal) tags.push("TERMINAL");
+    if (isDeadEnd && !isTerminal) tags.push("dead-end");
     if (isUnreachable) tags.push("UNREACHABLE");
     if (isStartScene) tags.push("STARTING-SCENE");
     lines.push(`## "${scene.title}" (position ${idx + 1}, type: ${scene.sceneType}, issues: ${tags.join(", ")})`);
     lines.push(`Description: ${scene.description.slice(0, 200)}`);
-    if (isUnreachable) {
+    if (isTerminal && isUnreachable) {
+      lines.push("⚠ This is a TERMINAL scene (campaign climax/boss encounter). It needs at least one INCOMING transition from a nearby reachable scene so the player can reach the campaign's ending. Do NOT add outgoing transitions from this scene.");
+    } else if (isUnreachable) {
       lines.push("⚠ This scene has no incoming transitions from any reachable scene. Add a transition FROM a nearby reachable scene TO this scene so players can reach it.");
     }
     if (isStartScene) {
@@ -311,6 +316,7 @@ async function runDeadEndRepair(
           "1. Add the MINIMUM transitions needed so the scene has at least one outgoing transition, OR\n" +
           "2. If the scene is clearly a boss encounter, final confrontation, or campaign climax (e.g. a throne room with the main antagonist), mark it as terminal by adding its EXACT title to terminalSceneIds instead of adding transitions.\n" +
           "For UNREACHABLE scenes: add a transition FROM a nearby reachable scene TO this scene.\n" +
+          "For TERMINAL UNREACHABLE scenes: add a transition FROM a nearby reachable scene TO this scene (incoming only). Do NOT add outgoing transitions from terminal scenes.\n" +
           "For STARTING-SCENE: ensure at least 3 outgoing transitions, with at least one leading FORWARD deeper into the campaign.\n" +
           "Scene titles must match EXACTLY.",
       },
@@ -465,6 +471,14 @@ function validatePlayability(graph: SceneGraph): SceneGraph {
         `Unreachable non-terminal scenes: ${unreachable.map(s => s.title).join(", ")}`
       );
     }
+
+    // Check 6: at least one terminal scene must be reachable from starting scene
+    const reachableTerminal = terminalScenes.filter(s => reachable.has(s.id));
+    if (terminalScenes.length > 0 && reachableTerminal.length === 0) {
+      issues.push(
+        `No terminal scenes are reachable from the starting scene. Unreachable terminal scenes: ${terminalScenes.map(s => s.title).join(", ")}`
+      );
+    }
   } catch {
     // findStartingScene may throw on empty graphs
   }
@@ -550,6 +564,38 @@ export async function enrichGraph(
     const removed = before - enrichedGraph.transitions.length;
     if (removed > 0) {
       console.log(`[enrich] Stripped ${removed} outgoing transition(s) from terminal scene(s)`);
+    }
+  }
+
+  // Pass 2b: Repair unreachable terminal scenes (conditional)
+  // After terminal stripping, check if any terminal scenes are unreachable
+  if (terminalIds.size > 0) {
+    const reachable = new Set<string>();
+    const queue = [findStartingScene(enrichedGraph).id];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (reachable.has(current)) continue;
+      reachable.add(current);
+      for (const t of enrichedGraph.transitions.filter(tr => tr.fromSceneId === current)) {
+        if (!reachable.has(t.toSceneId)) queue.push(t.toSceneId);
+      }
+    }
+    const unreachableTerminals = enrichedGraph.scenes
+      .filter(s => s.isTerminal && !reachable.has(s.id))
+      .map(s => s.id);
+    if (unreachableTerminals.length > 0) {
+      console.log(
+        `[enrich] Pass 2b: Repairing ${unreachableTerminals.length} unreachable terminal scene(s)...`,
+      );
+      const termRepairResult = await runDeadEndRepair(
+        enrichedGraph,
+        unreachableTerminals,
+      );
+      enrichedGraph = applyEnrichment(enrichedGraph, termRepairResult);
+      // Re-strip any outgoing transitions accidentally added to terminal scenes
+      enrichedGraph.transitions = enrichedGraph.transitions.filter(
+        t => !terminalIds.has(t.fromSceneId)
+      );
     }
   }
 
