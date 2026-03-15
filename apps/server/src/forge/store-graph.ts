@@ -30,8 +30,12 @@ export async function storeGraph(graph: SceneGraph): Promise<void> {
     await qdrant.createCollection(name, {
       vectors: { size: 1, distance: "Cosine" },
     });
-  } catch {
-    // Collection already exists — that's fine
+  } catch (err) {
+    // Only ignore "already exists" / "Conflict" — let connection/auth errors propagate
+    const message = err instanceof Error ? err.message : String(err);
+    if (!message.includes("already exists") && !message.includes("Conflict")) {
+      throw err;
+    }
   }
 
   // Upsert the graph as a single point (replaces payload atomically)
