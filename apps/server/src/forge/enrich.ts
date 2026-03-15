@@ -198,7 +198,7 @@ function buildRepairPrompt(
   lines.push("# Dead-End Repair");
   lines.push("");
   lines.push(
-    "The following non-terminal scenes still have NO outgoing transitions. Add the minimum transitions needed.",
+    "The following scenes need outgoing transitions. For each one, either add the minimum transitions needed OR mark it as terminal (in terminalSceneIds) if it is clearly a boss encounter or campaign climax. The starting scene (first scene with no incoming transitions) needs at least 2 outgoing transitions.",
   );
   lines.push("");
 
@@ -206,7 +206,7 @@ function buildRepairPrompt(
     const scene = graph.scenes.find((s) => s.id === deId);
     if (!scene) continue;
     const idx = graph.scenes.indexOf(scene);
-    lines.push(`## "${scene.title}" (position ${idx + 1})`);
+    lines.push(`## "${scene.title}" (position ${idx + 1}, type: ${scene.sceneType})`);
     lines.push(`Description: ${scene.description.slice(0, 200)}`);
     lines.push("Neighboring scenes:");
 
@@ -254,7 +254,10 @@ async function runDeadEndRepair(
       {
         role: "system",
         content:
-          "You are repairing a D&D campaign scene graph. Add the MINIMUM transitions needed so each listed dead-end scene has at least one outgoing transition. Scene titles must match EXACTLY. Do not add terminal scenes — those have already been identified.",
+          "You are repairing a D&D campaign scene graph. For each listed dead-end scene, do ONE of the following:\n" +
+          "1. Add the MINIMUM transitions needed so the scene has at least one outgoing transition, OR\n" +
+          "2. If the scene is clearly a boss encounter, final confrontation, or campaign climax (e.g. a throne room with the main antagonist), mark it as terminal by adding its EXACT title to terminalSceneIds instead of adding transitions.\n" +
+          "Scene titles must match EXACTLY.",
       },
       { role: "user", content: prompt },
     ],
@@ -427,10 +430,16 @@ export async function enrichGraph(
   let enrichedGraph = applyEnrichment(graph, enrichmentResult);
 
   // Pass 2: Targeted Dead-End Repair (conditional)
+  // Also include starting scene if it has fewer than 2 exits
   const remainingDeadEnds = getDeadEndScenes(enrichedGraph);
+  const startScene = findStartingScene(enrichedGraph);
+  const startExitCount = getOutgoingTransitions(enrichedGraph, startScene.id).length;
+  if (startExitCount < 2 && !remainingDeadEnds.includes(startScene.id)) {
+    remainingDeadEnds.push(startScene.id);
+  }
   if (remainingDeadEnds.length > 0) {
     console.log(
-      `[enrich] Pass 2: Repairing ${remainingDeadEnds.length} remaining dead-end(s)...`,
+      `[enrich] Pass 2: Repairing ${remainingDeadEnds.length} remaining issue(s)...`,
     );
     const repairResult = await runDeadEndRepair(
       enrichedGraph,
