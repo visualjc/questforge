@@ -31,6 +31,7 @@ export interface Scene {
   npcs: string[];
   items: string[];
   sourceChunkIndices: number[];
+  isTerminal?: boolean;
 }
 
 /** A directional link between two scenes. */
@@ -74,6 +75,7 @@ export interface SceneGraph {
   transitions: Transition[];
   npcs: NPC[];
   items: Item[];
+  playReady?: boolean;
 }
 
 // ---------------------------------------------------------------------------

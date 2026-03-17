@@ -31,11 +31,15 @@ export function registerGraphCommand(program: Command): void {
         console.log(
           `Model: ${result.model} | Created: ${result.createdAt} | Chunks: ${result.sourceChunkCount}`,
         );
+        if (result.playReady !== undefined) {
+          console.log(`playReady: ${result.playReady}`);
+        }
 
         // Scenes
         console.log(`\n── Scenes (${result.scenes.length}) ──`);
         for (const scene of result.scenes) {
-          console.log(`  [${scene.sceneType}] ${scene.title}`);
+          const terminalTag = scene.isTerminal ? " [TERMINAL]" : "";
+          console.log(`  [${scene.sceneType}] ${scene.title}${terminalTag}`);
           console.log(`    ${scene.description}`);
           console.log(`    (chunks: ${scene.sourceChunkIndices.join(", ")})`);
         }
